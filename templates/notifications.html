@@ -1,0 +1,72 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f8f8f8">
+    <title>Bildirishnomalar — 361 Blog</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% include "partials/theme_head.html" %}
+    <script src="{% static 'js/main.js' %}" defer></script>
+</head>
+<body class="home-page">
+    <div class="home-shell">
+        <header class="site-header">
+            <a class="brand" href="{% url 'home' %}" aria-label="361 Blog bosh sahifa">
+                <span class="brand-mark">361</span>
+                <span>Blog<span class="brand-dot">.</span></span>
+            </a>
+            <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="header-actions" data-menu-toggle aria-label="Menyuni ochish">
+                <span aria-hidden="true"></span>
+            </button>
+            <nav id="header-actions" class="header-actions" aria-label="Asosiy navigatsiya">
+                <button class="theme-toggle" type="button" data-theme-toggle aria-label="Dark/Light rejimni almashtirish" aria-pressed="false" title="Dark/Light rejim">
+                    <span class="theme-toggle-icon" aria-hidden="true">🌙</span>
+                </button>
+                <a class="button button-quiet" href="{% url 'home' %}">Postlar</a>
+                {% include "partials/chat_link.html" %}
+                {% include "partials/notification_link.html" %}
+                <a class="button button-quiet" href="{% url 'profile' %}">Profilim</a>
+            </nav>
+        </header>
+
+        <main class="notifications-page">
+            <section class="notifications-heading">
+                <span class="eyebrow"><span class="eyebrow-dot"></span> Hamjamiyat</span>
+                <div class="notifications-title-row">
+                    <div>
+                        <h1>Bildirishnomalar<span>.</span></h1>
+                        <p>Like, izoh va yangi obunalar shu yerda ko‘rinadi.</p>
+                    </div>
+                    {% if unread_notification_count %}
+                    <form action="{% url 'notifications_read' %}" method="post">
+                        {% csrf_token %}
+                        <button class="button button-quiet notification-read-all" type="submit">
+                            Hammasini o‘qilgan deb belgilash
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </section>
+
+            <section class="notification-list" aria-label="Bildirishnomalar ro‘yxati">
+                {% for notification in notifications %}
+                {% include "partials/notification_item.html" %}
+                {% empty %}
+                <div class="notifications-empty">
+                    <span aria-hidden="true">✧</span>
+                    <h2>Hozircha bildirishnomalar yo‘q</h2>
+                    <p>Postlaringizga like yoki izoh kelganda, yangi obunalar shu yerda chiqadi.</p>
+                </div>
+                {% endfor %}
+            </section>
+        </main>
+
+        <footer class="home-footer">
+            <span>© {% now "Y" %} 361 Blog</span>
+            <span>Hamjamiyatingizdagi yangiliklar.</span>
+        </footer>
+    </div>
+</body>
+</html>

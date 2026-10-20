@@ -1,0 +1,4 @@
+<a class="button button-quiet chat-nav-link" href="{% url 'chat' %}">
+    <span>Chatlar</span>
+    {% if unread_chat_count %}<span class="chat-nav-badge">{{ unread_chat_count }}</span>{% endif %}
+</a>

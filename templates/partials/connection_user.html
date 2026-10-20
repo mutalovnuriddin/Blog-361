@@ -1,0 +1,21 @@
+{% load static %}
+{% for connection_user in users %}
+<li>
+    <a class="connection-user" href="{% url 'user_profile' connection_user.username %}">
+        {% if connection_user.avatar_url %}
+        <img class="connection-user-avatar" src="{{ connection_user.avatar_url }}" alt="">
+        {% else %}
+        <img class="connection-user-avatar" src="{% static 'images/user.png' %}" alt="">
+        {% endif %}
+        <span class="connection-user-identity">
+            <strong>{{ connection_user.username }}</strong>
+            {% if connection_user.get_full_name %}
+            <span>{{ connection_user.get_full_name }}</span>
+            {% endif %}
+        </span>
+        <span class="connection-user-arrow" aria-hidden="true">↗</span>
+    </a>
+</li>
+{% empty %}
+<li class="connections-empty">Bu ro‘yxat hozircha bo‘sh.</li>
+{% endfor %}

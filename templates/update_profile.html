@@ -1,0 +1,104 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f8f8f8">
+    <title>Profil ma’lumotlari — 361 Blog</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% include "partials/theme_head.html" %}
+    <script src="{% static 'js/main.js' %}" defer></script>
+</head>
+<body class="home-page">
+    <div class="home-shell">
+        <header class="site-header">
+            <a class="brand" href="{% url 'home' %}" aria-label="361 Blog bosh sahifa">
+                <span class="brand-mark">361</span>
+                <span>Blog<span class="brand-dot">.</span></span>
+            </a>
+            <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="header-actions" data-menu-toggle aria-label="Menyuni ochish">
+                <span aria-hidden="true"></span>
+            </button>
+            <nav id="header-actions" class="header-actions" aria-label="Asosiy navigatsiya">
+                <button class="theme-toggle" type="button" data-theme-toggle aria-label="Dark/Light rejimni almashtirish" aria-pressed="false" title="Dark/Light rejim">
+                    <span class="theme-toggle-icon" aria-hidden="true">🌙</span>
+                </button>
+                {% include "partials/chat_link.html" %}
+                {% include "partials/notification_link.html" %}
+                <a class="button button-quiet" href="{% url 'home' %}">← Profilga qaytish</a>
+            </nav>
+        </header>
+
+        <main class="settings-page">
+            <div class="settings-heading">
+                <span class="eyebrow"><span class="eyebrow-dot"></span> Hisob sozlamalari</span>
+                <h1>O‘zingizga moslang<span>.</span></h1>
+                <p>Profilingiz va hisobingizni bir joydan boshqaring.</p>
+            </div>
+
+            <div class="settings-layout">
+                <nav class="settings-nav" aria-label="Hisob sozlamalari">
+                    <span class="settings-nav-label">Sozlamalar</span>
+                    <a class="settings-nav-item is-active" href="{% url 'profile_edit' %}" aria-current="page">
+                        <span class="settings-nav-icon" aria-hidden="true">◉</span>
+                        <span>
+                            <strong>Profil ma’lumotlari</strong>
+                            <small>Shaxsiy ma’lumotlar va rasm</small>
+                        </span>
+                        <span class="settings-nav-arrow" aria-hidden="true">→</span>
+                    </a>
+                    <a class="settings-nav-item" href="{% url 'password_change' %}">
+                        <span class="settings-nav-icon" aria-hidden="true">⌑</span>
+                        <span>
+                            <strong>Parol va xavfsizlik</strong>
+                            <small>Parolni yangilash</small>
+                        </span>
+                        <span class="settings-nav-arrow" aria-hidden="true">→</span>
+                    </a>
+                </nav>
+
+                <section class="settings-card">
+                    <div class="settings-card-heading">
+                        <div class="settings-heading-icon" aria-hidden="true">◉</div>
+                        <div>
+                            <h2>Profil ma’lumotlari</h2>
+                            <p>Hisobingizda ko‘rinadigan ma’lumotlarni yangilang.</p>
+                        </div>
+                    </div>
+
+                    <div class="settings-user">
+                        {% if request.user.avatar_url %}
+                        <img class="profile-avatar" src="{{ request.user.avatar_url }}" alt="{{ request.user.username }} avatari">
+                        {% else %}
+                        <img class="profile-avatar" src="{% static 'images/user.png' %}" alt="Standart avatar">
+                        {% endif %}
+                        <div>
+                            <strong>{{ request.user.username }}</strong>
+                            <span>Profil rasmini va ma’lumotlarni shu yerdan o‘zgartiring.</span>
+                        </div>
+                    </div>
+
+                    <form class="auth-form settings-form" method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {{ profile_form.as_p }}
+                        <div class="settings-actions">
+                            <a class="button button-secondary" href="{% url 'home' %}">Bekor qilish</a>
+                            <button class="button button-primary" type="submit">
+                                <span>O‘zgarishlarni saqlash</span>
+                                <span class="button-arrow" aria-hidden="true">→</span>
+                            </button>
+                        </div>
+                    </form>
+                </section>
+            </div>
+        </main>
+
+        <footer class="home-footer">
+            <span>© {% now "Y" %} 361 Blog</span>
+            <span>Har bir yaxshi ish oddiylikdan boshlanadi.</span>
+        </footer>
+    </div>
+</body>
+</html>

@@ -1,0 +1,138 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f8f8f8">
+    <title>{{ profile_user.username }} profili — 361 Blog</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% include "partials/theme_head.html" %}
+    <script src="{% static 'js/main.js' %}" defer></script>
+</head>
+<body class="home-page">
+    <div class="home-shell">
+        <header class="site-header">
+            <a class="brand" href="{% url 'home' %}" aria-label="361 Blog bosh sahifa">
+                <span class="brand-mark">361</span>
+                <span>Blog<span class="brand-dot">.</span></span>
+            </a>
+            <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="header-actions" data-menu-toggle aria-label="Menyuni ochish">
+                <span aria-hidden="true"></span>
+            </button>
+            <nav id="header-actions" class="header-actions" aria-label="Asosiy navigatsiya">
+                <button class="theme-toggle" type="button" data-theme-toggle aria-label="Dark/Light rejimni almashtirish" aria-pressed="false" title="Dark/Light rejim">
+                    <span class="theme-toggle-icon" aria-hidden="true">🌙</span>
+                </button>
+                <a class="button button-quiet" href="{% url 'home' %}">← Postlar</a>
+                {% include "partials/chat_link.html" %}
+                {% include "partials/notification_link.html" %}
+                {% if request.user != profile_user %}
+                <a class="button button-primary profile-chat-button" href="{% url 'chat_user' profile_user.username %}">
+                    <span aria-hidden="true">✉</span>
+                    <span>Chat</span>
+                </a>
+                {% endif %}
+                <a class="button button-settings" href="{% url 'add_post' %}">Post qo'shish</a>
+                {% if request.user == profile_user %}
+                <a class="button button-settings" href="{% url 'profile_edit' %}">Profilni tahrirlash</a>
+                {% endif %}
+            </nav>
+        </header>
+
+        <main class="profile-page">
+            <section class="profile-hero">
+                <div class="profile-hero-main">
+                    {% if profile_user.avatar_url %}
+                    <img class="profile-hero-avatar" src="{{ profile_user.avatar_url }}" alt="{{ profile_user.username }} avatari">
+                    {% else %}
+                    <img class="profile-hero-avatar" src="{% static 'images/user.png' %}" alt="Standart avatar">
+                    {% endif %}
+                    <div class="profile-hero-identity">
+                        <span class="eyebrow"><span class="eyebrow-dot"></span> Foydalanuvchi profili</span>
+                        <h1>{{ profile_user.username }}</h1>
+                        {% if profile_user.bio %}<p>{{ profile_user.bio }}</p>{% else %}<p>Bu foydalanuvchi hozircha o‘zi haqida ma’lumot qo‘shmagan.</p>{% endif %}
+                    </div>
+                </div>
+                {% if request.user == profile_user %}
+                <div class="profile-contact">
+                    <span class="detail-label">Elektron pochta</span>
+                    <span class="detail-value">{{ profile_user.email|default:"Kiritilmagan" }}</span>
+                    {% if profile_user.phone_number %}
+                    <span class="detail-label">Telefon raqam</span>
+                    <span class="detail-value">{{ profile_user.phone_number }}</span>
+                    {% endif %}
+                </div>
+                {% endif %}
+                <div class="profile-social">
+                    <div class="profile-stats" aria-label="Obunachilar statistikasi">
+                        <button
+                            class="profile-stat"
+                            type="button"
+                            data-connections-url="{% url 'user_connections' profile_user.username 'followers' %}"
+                            data-connections-title="Obunachilar"
+                        >
+                            <strong data-followers-count>{{ followers_count }}</strong> obunachi
+                        </button>
+                        <button
+                            class="profile-stat"
+                            type="button"
+                            data-connections-url="{% url 'user_connections' profile_user.username 'following' %}"
+                            data-connections-title="Obuna bo‘lganlar"
+                        >
+                            <strong data-following-count>{{ following_count }}</strong> obuna
+                        </button>
+                    </div>
+                    {% if not is_own_profile %}
+                    <form action="{% url 'follow_toggle' profile_user.pk %}" method="post" data-ajax-follow>
+                        {% csrf_token %}
+                        <button class="button {% if is_following %}button-secondary{% else %}button-primary{% endif %} follow-button" type="submit" data-follow-button>
+                            {% if is_following %}Obunani bekor qilish{% else %}Obuna bo‘lish{% endif %}
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </section>
+
+            <dialog class="connections-dialog" aria-labelledby="connections-dialog-title" data-connections-dialog>
+                <div class="connections-dialog-header">
+                    <div>
+                        <span class="eyebrow"><span class="eyebrow-dot"></span> Hamjamiyat</span>
+                        <h2 id="connections-dialog-title" data-connections-dialog-title>Obunalar</h2>
+                    </div>
+                    <button class="connections-dialog-close" type="button" aria-label="Oynani yopish" data-connections-close>×</button>
+                </div>
+                <p class="connections-dialog-status" role="status" aria-live="polite" data-connections-status></p>
+                <ul class="connections-list" aria-label="Foydalanuvchilar ro‘yxati" data-connections-list></ul>
+            </dialog>
+
+            <section class="profile-posts" aria-label="{{ profile_user.username }} postlari">
+                <div class="profile-posts-heading">
+                    <div>
+                        <span class="eyebrow">Ulashilganlar</span>
+                        <h2>{{ profile_user.username }} postlari</h2>
+                    </div>
+                    <span class="post-count">{{ posts|length }} ta post</span>
+                </div>
+
+                <div class="feed-list">
+                    {% for post in posts %}
+                    {% include "partials/post_card.html" with post=post %}
+                    {% empty %}
+                    <div class="feed-empty">
+                        <span aria-hidden="true">✦</span>
+                        <h2>Hozircha postlar yo‘q</h2>
+                        <p>{% if request.user == profile_user %}Birinchi postingizni yuqoridagi formadan ulashing.{% else %}Bu foydalanuvchi hali post ulashmagan.{% endif %}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+        </main>
+
+        <footer class="home-footer">
+            <span>© {% now "Y" %} 361 Blog</span>
+            <span>Har bir yaxshi ish oddiylikdan boshlanadi.</span>
+        </footer>
+    </div>
+</body>
+</html>

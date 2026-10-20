@@ -1,0 +1,78 @@
+from django.urls import path
+from .views import (
+    home_page,
+    login_page,
+    logout_page,
+    profile_page,
+    add_post_page,
+    register_page,
+    update_password_page,
+    update_profile_page,
+    like_post_view,
+    add_comment_view,
+    follow_toggle_view,
+    search_users_page,
+    user_connections_view,
+    chat_page,
+    chat_media_view,
+    share_targets_view,
+    share_post_view,
+    upload_chat_media_view,
+    chat_message_action_view,
+    notifications_page,
+    mark_notifications_read_view,
+    open_notification_view,
+)
+
+
+
+urlpatterns = [
+    path('', home_page, name='home'),
+    path('register/', register_page, name='register'),
+    path('login/', login_page, name='login'),
+    path('logout/', logout_page, name='logout'),
+    path('profile/', profile_page, name='profile'),
+    path('add/post/', add_post_page, name='add_post'),
+    path('profile/edit/', update_profile_page, name='profile_edit'),
+    path('profile/password/', update_password_page, name='password_change'),
+    path('profile/<str:username>/', profile_page, name='user_profile'),
+    path('post/<uuid:post_id>/like/', like_post_view, name='like_post'),
+    path('post/<uuid:post_id>/comment/', add_comment_view, name='add_comment'),
+    path('share/targets/', share_targets_view, name='share_targets'),
+    path('post/<uuid:post_id>/share/', share_post_view, name='share_post'),
+    path('user/<uuid:user_id>/follow/', follow_toggle_view, name='follow_toggle'),
+    path('search/', search_users_page, name='search_users'),
+    path('chat/', chat_page, name='chat'),
+    path('notifications/', notifications_page, name='notifications'),
+    path(
+        'notifications/<uuid:notification_id>/',
+        open_notification_view,
+        name='notification_open',
+    ),
+    path(
+        'notifications/read/',
+        mark_notifications_read_view,
+        name='notifications_read',
+    ),
+    path('chat/<str:username>/', chat_page, name='chat_user'),
+    path(
+        'chat/<uuid:conversation_id>/upload/',
+        upload_chat_media_view,
+        name='chat_upload_media',
+    ),
+    path(
+        'chat/media/<uuid:message_id>/',
+        chat_media_view,
+        name='chat_media',
+    ),
+    path(
+        'chat/message/<uuid:message_id>/',
+        chat_message_action_view,
+        name='chat_message_action',
+    ),
+    path(
+        'user/<str:username>/connections/<str:connection_type>/',
+        user_connections_view,
+        name='user_connections',
+    ),
+]

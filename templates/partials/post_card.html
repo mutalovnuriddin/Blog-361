@@ -1,0 +1,116 @@
+{% load static %}
+<article class="post-card" id="post-{{ post.pk }}" data-post-card>
+    <header class="post-header">
+        <a class="post-author" href="{% url 'user_profile' post.author.username %}">
+            {% if post.author.avatar_url %}
+            <img class="post-avatar" src="{{ post.author.avatar_url }}" alt="{{ post.author.username }} avatari">
+            {% else %}
+            <img class="post-avatar" src="{% static 'images/user.png' %}" alt="Standart avatar">
+            {% endif %}
+            <span class="post-author-details">
+                <strong>{{ post.author.username }}</strong>
+                <time datetime="{{ post.created_at|date:'c' }}">{{ post.created_at|date:"d.m.Y H:i" }}</time>
+            </span>
+        </a>
+        <a class="post-profile-link" href="{% url 'user_profile' post.author.username %}" aria-label="{{ post.author.username }} profilini ko‘rish">↗</a>
+    </header>
+
+    <div class="post-content">
+        {% if post.title %}<h2>{{ post.title }}</h2>{% endif %}
+        {% if post.desc %}<p>{{ post.desc }}</p>{% endif %}
+    </div>
+
+    {% if post.img or post.video %}
+    <div class="post-media">
+        {% if post.img %}
+        <img class="post-image" src="{{ post.img.url }}" alt="{{ post.title|default:'Post rasmi' }}">
+        {% else %}
+        <video class="post-video" controls preload="metadata">
+            <source src="{{ post.video.url }}" type="video/mp4">
+            Brauzeringiz videoni qo‘llab-quvvatlamaydi.
+        </video>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="post-interactions">
+        {% if user.is_authenticated %}
+        <form action="{% url 'like_post' post.pk %}" method="post" data-ajax-post-action>
+            {% csrf_token %}
+            <button class="interaction-button like-button{% if post.liked_by_user %} is-liked{% endif %}" type="submit" aria-label="{% if post.liked_by_user %}Like’ni bekor qilish{% else %}Postga like bosish{% endif %}">
+                <span class="like-heart" aria-hidden="true">{% if post.liked_by_user %}♥{% else %}♡{% endif %}</span>
+                <span>{{ post.like_count }}</span>
+            </button>
+        </form>
+        <button
+            class="interaction-button share-button"
+            type="button"
+            data-share-button
+            data-post-id="{{ post.pk }}"
+            data-post-title="{{ post.title|default:'' }}"
+            data-share-targets-url="{% url 'share_targets' %}"
+            data-share-url="{% url 'share_post' post.pk %}"
+            title="Do‘stlarga yuborish"
+            aria-label="Do‘stlarga yuborish"
+        >
+            <span aria-hidden="true">➦</span>
+            <span data-share-count>{{ post.share_count }}</span>
+        </button>
+        {% else %}
+        <a class="interaction-button like-button" href="{% url 'login' %}" aria-label="Like bosish uchun tizimga kirish">
+            <span class="like-heart" aria-hidden="true">♡</span>
+            <span>{{ post.like_count }}</span>
+        </a>
+        <a class="interaction-button share-button" href="{% url 'login' %}" title="Ulashish uchun tizimga kiring" aria-label="Ulashish uchun tizimga kirish">
+            <span aria-hidden="true">➦</span>
+            <span>{{ post.share_count }}</span>
+        </a>
+        {% endif %}
+    </div>
+
+    <details class="comments-panel">
+        <summary>
+            <span>Izohlar</span>
+            <span class="comment-count">{{ post.comment_count }}</span>
+        </summary>
+        <div class="comments-body">
+            {% if post.recent_comments %}
+            <ul class="comment-list">
+                {% for comment in post.recent_comments %}
+                <li class="comment-item">
+                    {% if comment.author.avatar_url %}
+                    <img class="comment-avatar" src="{{ comment.author.avatar_url }}" alt="{{ comment.author.username }} avatari">
+                    {% else %}
+                    <img class="comment-avatar" src="{% static 'images/user.png' %}" alt="Standart avatar">
+                    {% endif %}
+                    <div class="comment-copy">
+                        <div class="comment-meta">
+                            <a href="{% url 'user_profile' comment.author.username %}">{{ comment.author.username }}</a>
+                            <time datetime="{{ comment.created_at|date:'c' }}">{{ comment.created_at|date:"d.m.Y H:i" }}</time>
+                        </div>
+                        <p>{{ comment.text }}</p>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+            {% elif post.comment_count %}
+            <p class="comments-empty">So‘nggi izohlarni ko‘rsatib bo‘lmadi.</p>
+            {% else %}
+            <p class="comments-empty">Hali izoh yo‘q. Birinchi bo‘lib yozing.</p>
+            {% endif %}
+            {% if post.comment_count > 3 %}
+            <p class="comments-empty">Eng so‘nggi 3 ta izoh ko‘rsatilmoqda.</p>
+            {% endif %}
+            {% if user.is_authenticated %}
+            <form class="comment-form" action="{% url 'add_comment' post.pk %}" method="post" data-ajax-post-action>
+                {% csrf_token %}
+                <label class="visually-hidden" for="comment-{{ post.pk }}">Izoh yozing</label>
+                <input id="comment-{{ post.pk }}" name="text" type="text" placeholder="Fikringizni qoldiring..." required>
+                <button type="submit" aria-label="Izohni yuborish">Yuborish <span aria-hidden="true">→</span></button>
+            </form>
+            {% else %}
+            <a class="comment-login" href="{% url 'login' %}">Izoh yozish uchun tizimga kiring <span aria-hidden="true">→</span></a>
+            {% endif %}
+        </div>
+    </details>
+</article>

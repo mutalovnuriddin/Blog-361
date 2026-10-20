@@ -1,0 +1,8 @@
+{% load static %}
+<a class="button button-quiet notification-nav-link" href="{% url 'notifications' %}" data-notifications-socket-url="/ws/notifications/" aria-label="Bildirishnomalar{% if unread_notification_count %}: {{ unread_notification_count }} ta o‘qilmagan{% endif %}">
+    <span aria-hidden="true">♧</span>
+    <span>Bildirishnomalar</span>
+    {% if unread_notification_count %}
+    <span class="notification-nav-badge" data-notification-count>{{ unread_notification_count }}</span>
+    {% endif %}
+</a>

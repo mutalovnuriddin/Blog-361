@@ -1,0 +1,8 @@
+Django>=6.0,<7.0
+Pillow>=11.0
+channels>=4.2
+daphne>=4.1
+django-allauth>=65.0
+PyJWT==2.15.0
+requests==2.34.2
+uvicorn==0.54.0

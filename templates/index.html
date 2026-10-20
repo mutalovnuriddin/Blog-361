@@ -1,0 +1,91 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f8f8f8">
+    <title>Postlar — 361 Blog</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% include "partials/theme_head.html" %}
+    <script src="{% static 'js/main.js' %}" defer></script>
+</head>
+<body class="home-page">
+    <div class="home-shell">
+        <header class="site-header">
+            <a class="brand" href="{% url 'home' %}" aria-label="361 Blog bosh sahifa">
+                <span class="brand-mark">361</span>
+                <span>Blog<span class="brand-dot">.</span></span>
+            </a>
+            <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="header-actions" data-menu-toggle aria-label="Menyuni ochish">
+                <span aria-hidden="true"></span>
+            </button>
+            <nav id="header-actions" class="header-actions" aria-label="Asosiy navigatsiya">
+                <button class="theme-toggle" type="button" data-theme-toggle aria-label="Dark/Light rejimni almashtirish" aria-pressed="false" title="Dark/Light rejim">
+                    <span class="theme-toggle-icon" aria-hidden="true">🌙</span>
+                </button>
+                {% if user.is_authenticated %}
+                {% include "partials/chat_link.html" %}
+                {% include "partials/notification_link.html" %}
+                <a class="button button-quiet" href="{% url 'profile' %}">Profilim</a>
+                <form action="{% url 'logout' %}" method="post">
+                    {% csrf_token %}
+                    <button class="button button-quiet" type="submit">Chiqish</button>
+                </form>
+                {% else %}
+                <a class="button button-quiet" href="{% url 'login' %}">Kirish</a>
+                <a class="button button-primary header-register" href="{% url 'register' %}">Ro‘yxatdan o‘tish</a>
+                {% endif %}
+            </nav>
+        </header>
+
+        <main class="feed-page">
+            <section class="feed-heading">
+                <h1>Postlar</h1>
+                <p>Hamjamiyat ulashgan yangiliklar bilan tanishing.</p>
+                {% if user.is_authenticated %}
+                <section class="user-search" aria-label="Foydalanuvchilarni qidirish">
+                    <label for="user-search-input">Foydalanuvchini toping</label>
+                    <input
+                        id="user-search-input"
+                        type="search"
+                        placeholder="Username yoki ismni yozing..."
+                        autocomplete="off"
+                        aria-controls="user-search-results"
+                        aria-describedby="user-search-status"
+                        aria-expanded="false"
+                        data-user-search
+                        data-search-url="{% url 'search_users' %}"
+                    >
+                    <p id="user-search-status" class="user-search-status" role="status" aria-live="polite">
+                        Qidirish uchun username yoki ismni yozing.
+                    </p>
+                    <ul id="user-search-results" class="user-search-results" aria-label="Qidiruv natijalari" data-search-results></ul>
+                </section>
+                {% endif %}
+            </section>
+
+            <div class="feed-layout">
+                <section class="feed-stream" aria-label="Postlar">
+                    <div class="feed-list">
+                        {% for post in posts %}
+                        {% include "partials/post_card.html" with post=post %}
+                        {% empty %}
+                        <div class="feed-empty">
+                            <span aria-hidden="true">✦</span>
+                            <h2>Hozircha postlar yo‘q</h2>
+                            <p>Foydalanuvchilar ulashgan postlar shu yerda ko‘rinadi.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <footer class="home-footer">
+            <span>© {% now "Y" %} 361 Blog</span>
+            <span>Har bir yaxshi ish oddiylikdan boshlanadi.</span>
+        </footer>
+    </div>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{% load static %}
+<li>
+    <a class="user-search-result" href="{% url 'user_profile' user_result.username %}">
+        {% if user_result.avatar_url %}
+        <img class="user-search-avatar" src="{{ user_result.avatar_url }}" alt="">
+        {% else %}
+        <img class="user-search-avatar" src="{% static 'images/user.png' %}" alt="">
+        {% endif %}
+        <span class="user-search-identity">
+            <strong>{{ user_result.username }}</strong>
+            {% if user_result.get_full_name %}
+            <span>{{ user_result.get_full_name }}</span>
+            {% endif %}
+        </span>
+    </a>
+</li>

@@ -1,0 +1,266 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f8f8f8">
+    <title>Chatlar — 361 Blog</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% include "partials/theme_head.html" %}
+    <script src="{% static 'js/main.js' %}" defer></script>
+</head>
+<body class="chat-page">
+    <main
+        class="chat-app"
+        data-chat-app
+        data-active-chat="{% if chat_peer %}true{% else %}false{% endif %}"
+        data-socket-url="{% if selected_conversation %}/ws/chat/{{ selected_conversation.pk }}/{% endif %}"
+        data-upload-url="{% if selected_conversation %}{% url 'chat_upload_media' selected_conversation.pk %}{% endif %}"
+        data-message-action-url-template="{% url 'chat_message_action' '00000000-0000-0000-0000-000000000000' %}"
+        data-peer-username="{{ chat_peer.username|default:'' }}"
+        data-current-username="{{ request.user.username }}"
+        data-current-user-id="{{ request.user.pk }}"
+        data-default-avatar="{% static 'images/user.png' %}"
+    >
+        <header class="chat-topbar">
+            <a class="brand chat-brand" href="{% url 'home' %}" aria-label="361 Blog bosh sahifa">
+                <span class="brand-mark">361</span>
+                <span>Blog<span class="brand-dot">.</span></span>
+            </a>
+            <div class="chat-topbar-actions">
+                <button class="theme-toggle" type="button" data-theme-toggle aria-label="Dark/Light rejimni almashtirish" aria-pressed="false" title="Dark/Light rejim">
+                    <span class="theme-toggle-icon" aria-hidden="true">🌙</span>
+                </button>
+                <button class="menu-toggle chat-menu-toggle" type="button" aria-expanded="false" aria-controls="chat-topbar-menu" data-menu-toggle aria-label="Menyuni ochish">
+                    <span aria-hidden="true"></span>
+                </button>
+                <nav id="chat-topbar-menu" class="chat-topbar-menu" aria-label="Chat navigatsiyasi">
+                    <a class="chat-topbar-link" href="{% url 'notifications' %}" data-notifications-socket-url="/ws/notifications/">
+                        Bildirishnomalar
+                        {% if unread_notification_count %}<span class="notification-nav-badge" data-notification-count>{{ unread_notification_count }}</span>{% endif %}
+                    </a>
+                    <a class="chat-topbar-link" href="{% url 'home' %}">Bosh sahifa</a>
+                    <a class="chat-topbar-link" href="{% url 'profile' %}">Profilim</a>
+                </nav>
+            </div>
+        </header>
+
+        <div class="chat-layout" data-active-chat="{% if chat_peer %}true{% else %}false{% endif %}">
+            <aside class="chat-sidebar" aria-label="Chatlar ro‘yxati">
+                <div class="chat-sidebar-heading">
+                    <div>
+                        <span class="chat-kicker">Shaxsiy xabarlar</span>
+                        <h1>Chatlar</h1>
+                    </div>
+                    <span class="chat-count">{{ conversations|length }}</span>
+                </div>
+                <label class="chat-search">
+                    <span aria-hidden="true">⌕</span>
+                    <input type="search" placeholder="Chatlar ichidan qidirish..." data-chat-filter>
+                </label>
+                <div class="chat-list" data-chat-list>
+                    {% for conversation in conversations %}
+                    <a
+                        class="chat-list-item{% if selected_conversation.pk == conversation.pk %} is-active{% endif %}"
+                        href="{% url 'chat_user' conversation.chat_peer.username %}"
+                        data-chat-item
+                        data-chat-username="{{ conversation.chat_peer.username|lower }}"
+                    >
+                        <span class="chat-list-avatar-wrap">
+                            {% if conversation.chat_peer.avatar_url %}
+                            <img class="chat-list-avatar" src="{{ conversation.chat_peer.avatar_url }}" alt="">
+                            {% else %}
+                            <img class="chat-list-avatar" src="{% static 'images/user.png' %}" alt="">
+                            {% endif %}
+                            <span class="chat-presence-dot" data-presence-for="{{ conversation.chat_peer.username }}"></span>
+                        </span>
+                        <span class="chat-list-copy">
+                            <strong>{{ conversation.chat_peer.username }}</strong>
+                            {% if conversation.latest_message %}
+                            <span class="chat-list-preview">
+                                {% if conversation.latest_message.sender_id == request.user.pk %}Siz: {% endif %}{{ conversation.latest_message.preview_text }}
+                            </span>
+                            {% else %}
+                            <span class="chat-list-preview">Suhbatni boshlang</span>
+                            {% endif %}
+                        </span>
+                        {% if conversation.latest_message %}
+                        <time class="chat-list-time" datetime="{{ conversation.latest_message.created_at|date:'c' }}">{{ conversation.latest_message.created_at|date:"H:i" }}</time>
+                        {% endif %}
+                        {% if conversation.unread_count %}
+                        <span class="chat-unread-badge" aria-label="{{ conversation.unread_count }} ta o‘qilmagan xabar">{{ conversation.unread_count }}</span>
+                        {% endif %}
+                    </a>
+                    {% empty %}
+                    <div class="chat-list-empty">
+                        <span aria-hidden="true">✧</span>
+                        <strong>Hali chatlar yo‘q</strong>
+                        <p>Biror foydalanuvchi profilidan chatni boshlang.</p>
+                    </div>
+                    {% endfor %}
+                    <p class="chat-filter-empty" hidden data-chat-filter-empty>Chat topilmadi.</p>
+                </div>
+                <a class="chat-sidebar-profile" href="{% url 'profile' %}">
+                    <span class="chat-own-avatar">
+                        {% if request.user.avatar_url %}
+                        <img src="{{ request.user.avatar_url }}" alt="">
+                        {% else %}
+                        <img src="{% static 'images/user.png' %}" alt="">
+                        {% endif %}
+                    </span>
+                    <span><strong>{{ request.user.username }}</strong><small>Profilim</small></span>
+                    <span class="chat-own-arrow" aria-hidden="true">↗</span>
+                </a>
+            </aside>
+
+            <section class="chat-window" aria-label="Suhbat">
+                {% if chat_peer %}
+                <header class="chat-conversation-header">
+                    <a class="chat-mobile-back" href="{% url 'chat' %}" aria-label="Chatlar ro‘yxatiga qaytish">←</a>
+                    <a class="chat-peer-avatar-wrap" href="{% url 'user_profile' chat_peer.username %}">
+                        {% if chat_peer.avatar_url %}
+                        <img class="chat-peer-avatar" src="{{ chat_peer.avatar_url }}" alt="">
+                        {% else %}
+                        <img class="chat-peer-avatar" src="{% static 'images/user.png' %}" alt="">
+                        {% endif %}
+                        <span class="chat-presence-dot" data-presence-for="{{ chat_peer.username }}"></span>
+                    </a>
+                    <div class="chat-peer-details">
+                        <a href="{% url 'user_profile' chat_peer.username %}">{{ chat_peer.username }}</a>
+                        <span data-chat-status>Ulanmoqda...</span>
+                    </div>
+                    <a class="chat-profile-action" href="{% url 'user_profile' chat_peer.username %}" aria-label="Profilni ko‘rish">ⓘ</a>
+                </header>
+                <div class="chat-messages" aria-live="polite" aria-relevant="additions text" data-chat-messages>
+                    {% for message in messages %}
+                    <article class="chat-message{% if message.sender_id == request.user.pk %} is-mine{% endif %}" data-message-id="{{ message.pk }}">
+                        <span class="chat-message-avatar">
+                            {% if message.sender.avatar_url %}
+                            <img src="{{ message.sender.avatar_url }}" alt="">
+                            {% else %}
+                            <img src="{% static 'images/user.png' %}" alt="">
+                            {% endif %}
+                        </span>
+                        <div class="chat-message-content">
+                                                        {% if message.body %}<p>{{ message.body }}</p>{% endif %}
+                            {% if message.shared_post %}
+                            <a class="chat-shared-post" href="{% url 'home' %}#post-{{ message.shared_post.pk }}" target="_blank" rel="noopener">
+                                <span class="chat-shared-post-media" aria-hidden="true">
+                                    {% if message.shared_post.img %}
+                                    <img src="{{ message.shared_post.img.url }}" alt="" loading="lazy">
+                                    {% elif message.shared_post.video %}
+                                    <video src="{{ message.shared_post.video.url }}" preload="metadata" muted></video>
+                                    {% else %}
+                                    <span class="chat-shared-post-placeholder">📄</span>
+                                    {% endif %}
+                                </span>
+                                <span class="chat-shared-post-copy">
+                                    <span class="chat-shared-post-badge">📄 Ulangan post</span>
+                                    <strong>{{ message.shared_post.title|default:message.shared_post.desc|truncatechars:50 }}</strong>
+                                    <span class="chat-shared-post-author">@{{ message.shared_post.author.username }}</span>
+                                    <span class="chat-shared-post-open">Postni ko‘rish <span aria-hidden="true">→</span></span>
+                                </span>
+                            </a>
+                            {% endif %}
+                            {% if message.media %}
+                                {% if message.attachment_type == 'image' %}
+                                <img class="chat-message-image" src="{% url 'chat_media' message.pk %}" alt="Yuborilgan rasm" loading="lazy">
+                                {% elif message.attachment_type == 'video' %}
+                                <video class="chat-message-video" src="{% url 'chat_media' message.pk %}" controls playsinline preload="metadata"></video>
+                                {% elif message.attachment_type == 'audio' %}
+                                <audio class="chat-message-audio" src="{% url 'chat_media' message.pk %}" controls preload="metadata"></audio>
+                                {% endif %}
+                            {% endif %}
+                            <time datetime="{{ message.created_at|date:'c' }}">{{ message.created_at|date:"H:i" }}</time>
+                            {% if message.sender_id == request.user.pk %}
+                            <div class="chat-message-actions" data-message-actions>
+                                <button type="button" data-message-action="edit" aria-label="Xabarni tahrirlash" title="Tahrirlash">✎</button>
+                                <button type="button" data-message-action="delete" aria-label="Xabarni o‘chirish" title="O‘chirish">⌫</button>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </article>
+                    {% empty %}
+                    <div class="chat-start-note" data-chat-start-note>
+                        <span>✦</span>
+                        <p>{{ chat_peer.username }} bilan suhbatni boshlang.</p>
+                    </div>
+                    {% endfor %}
+                    <div class="chat-typing-indicator" aria-live="polite" hidden data-chat-typing>
+                        <span class="typing-dots"><i></i><i></i><i></i></span>
+                        <span>{{ chat_peer.username }} yozmoqda</span>
+                    </div>
+                </div>
+                <div class="chat-attachment-preview" hidden data-attachment-preview>
+                    <div class="chat-attachment-preview-media" data-attachment-preview-media></div>
+                    <div class="chat-attachment-preview-copy">
+                        <strong data-attachment-preview-name></strong>
+                        <span data-attachment-preview-size></span>
+                    </div>
+                    <button type="button" class="chat-tool-button" data-attachment-cancel aria-label="Tanlangan faylni bekor qilish" title="Bekor qilish">×</button>
+                </div>
+                <form class="chat-compose" data-chat-form>
+                    {% csrf_token %}
+                    <button class="chat-tool-button chat-attach-button" type="button" aria-label="Rasm yoki video biriktirish" title="Rasm yoki video yuborish" data-chat-file-button>
+                        <span aria-hidden="true">＋</span>
+                    </button>
+                    <input type="file" accept="image/*,video/*" data-chat-file hidden>
+                    <div class="chat-emoji-wrap">
+                        <button class="chat-tool-button" type="button" aria-label="Emoji tanlash" aria-expanded="false" data-emoji-toggle>☺</button>
+                        <div class="chat-emoji-picker" role="group" aria-label="Emoji tanlang" hidden data-emoji-picker>
+                            <button type="button" data-emoji="😀">😀</button>
+                            <button type="button" data-emoji="😂">😂</button>
+                            <button type="button" data-emoji="🥰">🥰</button>
+                            <button type="button" data-emoji="😍">😍</button>
+                            <button type="button" data-emoji="😊">😊</button>
+                            <button type="button" data-emoji="😉">😉</button>
+                            <button type="button" data-emoji="🤗">🤗</button>
+                            <button type="button" data-emoji="😎">😎</button>
+                            <button type="button" data-emoji="😭">😭</button>
+                            <button type="button" data-emoji="👍">👍</button>
+                            <button type="button" data-emoji="👏">👏</button>
+                            <button type="button" data-emoji="🙏">🙏</button>
+                            <button type="button" data-emoji="❤️">❤️</button>
+                            <button type="button" data-emoji="💚">💚</button>
+                            <button type="button" data-emoji="✨">✨</button>
+                            <button type="button" data-emoji="🔥">🔥</button>
+                            <button type="button" data-emoji="🎉">🎉</button>
+                            <button type="button" data-emoji="💯">💯</button>
+                            <button type="button" data-emoji="🥹">🥹</button>
+                            <button type="button" data-emoji="🙌">🙌</button>
+                        </div>
+                    </div>
+                    <label class="visually-hidden" for="chat-message-input">Xabar yozing</label>
+                    <input
+                        id="chat-message-input"
+                        type="text"
+                        maxlength="2000"
+                        autocomplete="off"
+                        placeholder="Xabar yozing..."
+                        data-chat-input
+                    >
+                    <span class="chat-record-status" hidden data-record-status></span>
+                    <button class="chat-tool-button chat-record-button" type="button" aria-label="Ovozli xabar yozish" title="Ovozli xabar yozish" data-audio-record>
+                        <span aria-hidden="true">🎙</span>
+                    </button>
+                    <button type="submit" aria-label="Xabarni yuborish" data-chat-send>
+                        <span>Yuborish</span>
+                        <span aria-hidden="true">➤</span>
+                    </button>
+                </form>
+                <p class="chat-error" role="alert" hidden data-chat-error></p>
+                {% else %}
+                <div class="chat-empty-state">
+                    <div class="chat-empty-icon"><span>✉</span></div>
+                    <span class="chat-kicker">361 Blog xabarlari</span>
+                    <h2>Xabarlaringiz shu yerda</h2>
+                    <p>Chap tomondan suhbatni tanlang yoki foydalanuvchi profilidan yangi chat boshlang.</p>
+                    <a class="chat-browse-button" href="{% url 'home' %}">Hamjamiyatni ko‘rish <span aria-hidden="true">→</span></a>
+                </div>
+                {% endif %}
+            </section>
+        </div>
+    </main>
+</body>
+</html>

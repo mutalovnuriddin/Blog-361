@@ -1,0 +1,63 @@
+{% load static socialaccount %}
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f8f8f8">
+    <title>Ro‘yxatdan o‘tish — 361 Blog</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% include "partials/theme_head.html" %}
+    <script src="{% static 'js/main.js' %}" defer></script>
+</head>
+<body class="auth-page">
+    <main class="auth-shell">
+        <a class="brand" href="{% url 'login' %}" aria-label="361 Blog bosh sahifa">
+            <span class="brand-mark">361</span>
+            <span>Blog<span class="brand-dot">.</span></span>
+        </a>
+
+        <section class="auth-layout auth-layout-register">
+            <div class="auth-intro">
+                <span class="eyebrow"><span class="eyebrow-dot"></span> O‘zingizga joy oching</span>
+                <h1>Yangi sahifa.<br><em>Yangi imkon.</em></h1>
+                <p>Bir necha qadamda hisob yarating. Qolganini biz osonlashtiramiz.</p>
+                <div class="intro-note">
+                    <span class="note-line"></span>
+                    <span>Hammasi kichik bir qadamdan boshlanadi.</span>
+                </div>
+            </div>
+
+            <div class="auth-card">
+                <div class="card-heading">
+                    <span class="eyebrow">Hamjamiyatga qo‘shiling</span>
+                    <h2>Hisob yarating</h2>
+                    <p>Ma’lumotlaringizni kiriting — bu juda tez.</p>
+                </div>
+
+                <form class="auth-form" action="" enctype="multipart/form-data" method="post">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button class="button button-primary" type="submit">
+                        <span>Ro‘yxatdan o‘tish</span>
+                        <span class="button-arrow" aria-hidden="true">→</span>
+                    </button>
+                </form>
+
+                <div class="form-divider"><span>yoki</span></div>
+                <a class="button button-secondary" href="{% provider_login_url 'google' %}">
+                    <span class="google-mark" aria-hidden="true">G</span>
+                    Google bilan davom etish
+                </a>
+
+                <p class="auth-switch">Hisobingiz bormi? <a href="{% url 'login' %}">Kirish <span aria-hidden="true">↗</span></a></p>
+            </div>
+        </section>
+
+        <footer class="auth-footer">
+            <span>© {% now "Y" %} 361 Blog</span>
+            <span>Siz uchun, soddalik bilan.</span>
+        </footer>
+    </main>
+</body>
+</html>

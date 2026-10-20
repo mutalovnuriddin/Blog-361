@@ -1,0 +1,26 @@
+{% load static %}
+<li>
+    <button
+        type="button"
+        class="share-user{% if is_following %} is-followed{% endif %}"
+        data-share-user
+        data-user-id="{{ target_user.pk }}"
+        data-user-name="{{ target_user.username }}"
+        aria-pressed="false"
+    >
+        {% if target_user.avatar_url %}
+        <img class="share-user-avatar" src="{{ target_user.avatar_url }}" alt="">
+        {% else %}
+        <img class="share-user-avatar" src="{% static 'images/user.png' %}" alt="">
+        {% endif %}
+        <span class="share-user-identity">
+            <strong>{{ target_user.username }}</strong>
+            {% if target_user.get_full_name %}
+            <span>{{ target_user.get_full_name }}</span>
+            {% elif is_following %}
+            <span>Obuna bo‘lgansiz</span>
+            {% endif %}
+        </span>
+        <span class="share-user-check" aria-hidden="true">✓</span>
+    </button>
+</li>

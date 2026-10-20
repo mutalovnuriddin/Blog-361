@@ -1,0 +1,47 @@
+{% load static %}
+<form action="{% url 'notification_open' notification.pk %}" method="post">
+    {% csrf_token %}
+    <button
+        class="notification-item{% if not notification.is_read %} is-unread{% endif %}"
+        type="submit"
+    >
+        <span class="notification-avatar-wrap">
+            {% if notification.actor.avatar_url %}
+            <img class="notification-avatar" src="{{ notification.actor.avatar_url }}" alt="">
+            {% else %}
+            <img class="notification-avatar" src="{% static 'images/user.png' %}" alt="">
+            {% endif %}
+            <span class="notification-kind-icon notification-kind-{{ notification.notification_type }}" aria-hidden="true">
+                {% if notification.notification_type == 'like' %}♥{% elif notification.notification_type == 'comment' %}✎{% else %}＋{% endif %}
+            </span>
+        </span>
+        <span class="notification-copy">
+            <span class="notification-message">
+                <strong>{{ notification.actor.username }}</strong>
+                {% if notification.notification_type == 'like' %}
+                postingizga like bosdi.
+                {% elif notification.notification_type == 'comment' %}
+                postingizga izoh yozdi:
+                {% else %}
+                sizga obuna bo‘ldi.
+                {% endif %}
+            </span>
+            {% if notification.notification_type == 'comment' and notification.comment %}
+            <span class="notification-comment">“{{ notification.comment.text|truncatechars:100 }}”</span>
+            {% endif %}
+            {% if notification.post %}
+            <span class="notification-post-preview">
+                {% if notification.post.img %}
+                <img src="{{ notification.post.img.url }}" alt="" loading="lazy">
+                {% endif %}
+                <span>
+                    {% if notification.post.title %}<strong>{{ notification.post.title }}</strong>{% endif %}
+                    <span>{{ notification.post.desc|default:"Post"|truncatechars:110 }}</span>
+                </span>
+            </span>
+            {% endif %}
+            <time datetime="{{ notification.created_at|date:'c' }}">{{ notification.created_at|date:"d.m.Y · H:i" }}</time>
+        </span>
+        {% if not notification.is_read %}<span class="notification-unread-dot" aria-label="O‘qilmagan"></span>{% endif %}
+    </button>
+</form>
