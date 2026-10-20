@@ -6,3 +6,4 @@ django-allauth>=65.0
 PyJWT==2.15.0
 requests==2.34.2
 uvicorn==0.54.0
+dotenv==0.9.9
